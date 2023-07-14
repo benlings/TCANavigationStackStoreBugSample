@@ -12,7 +12,14 @@ import ComposableArchitecture
 struct TestNavDestinationApp: App {
   var body: some Scene {
     WindowGroup {
-      ContentView(store: Store(initialState: .init(), reducer: ContentFeature()))
+      TabView {
+        Vanilla.ContentView()
+          .tabItem { Text("Vanilla") }
+        VanillaStack.ContentView(store: Store(initialState: .init(), reducer: VanillaStack.ContentFeature()))
+          .tabItem { Text("Vanilla Stack") }
+        TCA.ContentView(store: Store(initialState: .init(), reducer: TCA.ContentFeature()))
+          .tabItem { Text("TCA") }
+      }
     }
   }
 }
