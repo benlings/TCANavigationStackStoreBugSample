@@ -72,8 +72,53 @@ struct ContentView: View {
 struct IntFeature: ReducerProtocol {
   struct State: Equatable {
     var num: Int
+    @PresentationState var dest: DestFeature.State? = nil
   }
   public enum Action {
+    case showDest
+    case dest(PresentationAction<DestFeature.Action>)
+  }
+  var body: some ReducerProtocolOf<Self> {
+    Reduce { state, action in
+      switch action {
+      case .showDest:
+        state.dest = .init()
+        return .none
+
+      case .dest:
+        return .none
+      }
+    }
+    .ifLet(\.$dest, action: /Action.dest) {
+      DestFeature()
+    }
+  }
+}
+
+struct IntView: View {
+  let store: StoreOf<IntFeature>
+
+  var body: some View {
+    WithViewStore(store, observe: { $0 }) { viewStore in
+      VStack {
+        Text("Number \(viewStore.num)")
+        Button("Show 2") {
+          viewStore.send(.showDest)
+        }
+      }
+      .navigationDestination(
+        store: store.scope(state: \.$dest, action: { .dest($0) })
+      ) {
+        DestView(store: $0)
+      }
+    }
+  }
+}
+
+struct DestFeature: ReducerProtocol {
+  struct State: Equatable {
+  }
+  enum Action {
   }
   var body: some ReducerProtocolOf<Self> {
     Reduce { state, action in
@@ -83,25 +128,14 @@ struct IntFeature: ReducerProtocol {
   }
 }
 
-struct IntView: View {
-  let store: StoreOf<IntFeature>
-
-  @State var isDestVisible: Bool = false
+struct DestView: View {
+        let store: StoreOf<DestFeature>
 
   var body: some View {
-    WithViewStore(store, observe: { $0 }) { viewStore in
-      VStack {
-        Text("Number \(viewStore.num)")
-        Button("Show 2") {
-          isDestVisible = true
-        }
-      }
-      .navigationDestination(isPresented: $isDestVisible) {
-        Text("Destination 2")
-      }
-    }
+    Text("Destination 2")
   }
 }
+
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
